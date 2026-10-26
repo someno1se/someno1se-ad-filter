@@ -1,0 +1,43 @@
+{
+  "name": "someno1se ad filter",
+  "description": "High-Performance Unified DNS AdBlock Filter (AdGuard & Pi-hole)",
+  "homepage": "https://github.com/someno1se/someno1se-ad-filter",
+  "version": "1.0.0",
+  "sources": [
+    {
+      "name": "someno1se Priority Rules",
+      "source": "rules/my-rules.txt",
+      "type": "hosts"
+    },
+    {
+      "name": "KOR: filterslist-KO DNS",
+      "source": "https://adguardteam.github.io/HostlistsRegistry/assets/filter_25.txt",
+      "type": "adblock"
+    },
+    {
+      "name": "HaGeZi Multi Ultimate",
+      "source": "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/ultimate.txt",
+      "type": "adblock"
+    },
+    {
+      "name": "OISD Big",
+      "source": "https://big.oisd.nl",
+      "type": "adblock"
+    },
+    {
+      "name": "1Hosts (Xtra)",
+      "source": "https://raw.githubusercontent.com/badmojr/1Hosts/master/Xtra/adblock.txt",
+      "type": "adblock"
+    },
+    {
+      "name": "StevenBlack Unified Extended",
+      "source": "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews-gambling-porn/hosts",
+      "type": "hosts"
+    },
+    {
+      "name": "AdGuard DNS Base Filter",
+      "source": "https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt",
+      "type": "adblock"
+    }
+  ]
+}

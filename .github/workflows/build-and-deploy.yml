@@ -1,0 +1,43 @@
+name: Build & Deploy someno1se ad filter
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'rules/**'
+      - 'configuration.json'
+      - 'scripts/**'
+      - 'package.json'
+  schedule:
+    # 매일 한국 시간 새벽 3시(UTC 18:00)에 최신 차단 목록 자동 업데이트
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 🚀 Compile Filter Lists (Pi-hole & AdGuard)
+        run: node scripts/build.js
+
+      - name: 🚀 Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          commit_message: "Automated filter build: ${{ github.sha }}"

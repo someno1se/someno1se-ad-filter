@@ -1,0 +1,18 @@
+{
+  "name": "someno1se-ad-filter",
+  "version": "1.0.0",
+  "description": "High-Performance Unified DNS AdBlock Filter (AdGuard & Pi-hole)",
+  "scripts": {
+    "build": "node scripts/build.js"
+  },
+  "keywords": [
+    "adblock",
+    "dns",
+    "pihole",
+    "adguard",
+    "hosts",
+    "korean-adblock"
+  ],
+  "author": "someno1se",
+  "license": "MIT"
+}

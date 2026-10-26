@@ -1,0 +1,22 @@
+# ==================================================
+# someno1se ad filter - Whitelist / Allowlist
+# 오탐 방지 및 무조건 허용할 정상 도메인 목록
+# (필요시 도메인을 한 줄에 하나씩 추가하세요)
+# ==================================================
+
+# 한국 주요 필수 서비스 (오탐 방지용 기본 예외)
+nid.naver.com
+kauth.kakao.com
+accounts.kakao.com
+t1.daumcdn.net
+pay.naver.com
+kakaopay.com
+toss.im
+banking.nonghyup.com
+ibk.co.kr
+kbstar.com
+shinhan.com
+wooribank.com
+hanafn.com
+gov.kr
+hometax.go.kr

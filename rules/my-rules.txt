@@ -1,0 +1,30 @@
+# ==================================================
+# someno1se ad filter - My Custom Priority Blocklist
+# 내가 직접 관리하는 최우선 차단 도메인 목록
+# ==================================================
+
+# DoubleClick & Google Ads
+doubleclick.net
+googleadservices.com
+googlesyndication.com
+2mdn.net
+
+# Global Big Trackers
+criteo.com
+criteo.net
+taboola.com
+outbrain.com
+adnxs.com
+rubiconproject.com
+pubmatic.com
+scorecardresearch.com
+
+# Korea Local Ad Networks
+cauly.co.kr
+buzzvil.com
+dable.io
+widerplanet.com
+adop.cc
+tenping.kr
+mobon.net
+tagtree.co.kr
