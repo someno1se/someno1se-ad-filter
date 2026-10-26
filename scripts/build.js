@@ -8,19 +8,15 @@ const distDir = path.join(rootDir, 'dist');
 const configFile = path.join(rootDir, 'configuration.json');
 const whitelistFile = path.join(rootDir, 'rules', 'whitelist.txt');
 
-// Domain extraction regex
-// Matches: ||example.com^, 0.0.0.0 example.com, 127.0.0.1 example.com, example.com
-const DOMAIN_REGEX = /^(?:\|\|)?(?:(?:0\.0\.0\.0|127\.0\.0\.1)\s+)?([a-z0-9*_-](?:[a-z0-9*._-]*[a-z0-9*_-])?)(?:\^.*)?$/i;
 const IP_REGEX = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/;
 
 function isValidDomain(domain) {
   if (!domain || domain.length > 253) return false;
   if (!domain.includes('.')) return false;
   if (IP_REGEX.test(domain)) return false;
-  if (domain.includes('*')) return false; // DNS domains must not contain wildcards
+  if (domain.includes('*')) return false;
   if (domain === 'localhost' || domain === 'broadcasthost' || domain.endsWith('.local') || domain.endsWith('.lan') || domain.endsWith('.internal')) return false;
   
-  // RFC compliant domain label verification
   const labels = domain.split('.');
   for (const label of labels) {
     if (!label || label.length > 63) return false;
@@ -34,14 +30,10 @@ function parseLine(line) {
   let trimmed = line.trim();
   if (!trimmed || trimmed.startsWith('!') || trimmed.startsWith('#')) return null;
 
-  // Strip inline comments starting with # or space
   trimmed = trimmed.replace(/#.*$/, '').trim();
   if (!trimmed) return null;
 
-  // Strip leading ||, 0.0.0.0, 127.0.0.1
   let clean = trimmed.replace(/^\|\|/, '').replace(/^(?:0\.0\.0\.0|127\.0\.0\.1)\s+/, '').replace(/\^.*$/, '').trim();
-  
-  // Strip leading wildcard *. or *
   clean = clean.replace(/^\*\.?/, '');
 
   const domain = clean.toLowerCase();
@@ -60,13 +52,13 @@ async function loadWhitelist() {
     const domain = parseLine(line);
     if (domain) whitelist.add(domain);
   }
-  console.log(`🛡️  Loaded ${whitelist.size.toLocaleString()} whitelisted domains.`);
+  console.log(`[whitelist] Loaded ${whitelist.size.toLocaleString()} whitelisted domains.`);
   return whitelist;
 }
 
 async function fetchSourceStream(sourceUrl) {
   if (sourceUrl.startsWith('http://') || sourceUrl.startsWith('https://')) {
-    console.log(`🌐 Fetching remote: ${sourceUrl}`);
+    console.log(`[fetch] ${sourceUrl}`);
     const response = await fetch(sourceUrl);
     if (!response.ok) {
       throw new Error(`HTTP error ${response.status} from ${sourceUrl}`);
@@ -74,9 +66,9 @@ async function fetchSourceStream(sourceUrl) {
     return Readable.fromWeb(response.body);
   } else {
     const filePath = path.isAbsolute(sourceUrl) ? sourceUrl : path.join(rootDir, sourceUrl);
-    console.log(`📂 Reading local: ${filePath}`);
+    console.log(`[read] ${filePath}`);
     if (!fs.existsSync(filePath)) {
-      console.warn(`⚠️ File not found: ${filePath}`);
+      console.warn(`[warn] File not found: ${filePath}`);
       return null;
     }
     return fs.createReadStream(filePath);
@@ -100,13 +92,13 @@ async function processSource(source, domainSet) {
       count++;
     }
   }
-  console.log(`   └─ Loaded ${count.toLocaleString()} raw rules from [${source.name}]`);
+  console.log(`  -> Loaded ${count.toLocaleString()} raw rules from [${source.name}]`);
   return count;
 }
 
 async function main() {
   const startTime = Date.now();
-  console.log('🚀 Starting someno1se ad filter compilation pipeline...\n');
+  console.log('[build] Starting compilation pipeline...\n');
 
   fs.mkdirSync(distDir, { recursive: true });
 
@@ -118,13 +110,12 @@ async function main() {
     try {
       await processSource(source, domainSet);
     } catch (err) {
-      console.error(`❌ Failed to process ${source.name}: ${err.message}`);
+      console.error(`[error] Failed to process ${source.name}: ${err.message}`);
     }
   }
 
-  console.log(`\n📦 Total unique domains collected: ${domainSet.size.toLocaleString()}`);
+  console.log(`\n[info] Total unique domains collected: ${domainSet.size.toLocaleString()}`);
 
-  // Apply Whitelist
   let removedByWhitelist = 0;
   for (const allowed of whitelist) {
     if (domainSet.delete(allowed)) {
@@ -132,22 +123,22 @@ async function main() {
     }
   }
   if (removedByWhitelist > 0) {
-    console.log(`🧹 Removed ${removedByWhitelist.toLocaleString()} domains via whitelist.`);
+    console.log(`[info] Removed ${removedByWhitelist.toLocaleString()} domains via whitelist.`);
   }
 
-  console.log('🔤 Sorting domains alphabetically...');
+  console.log('[info] Sorting domains alphabetically...');
   const sortedDomains = Array.from(domainSet).sort();
   const totalRules = sortedDomains.length;
   const isoTime = new Date().toISOString();
   const formattedCount = totalRules.toLocaleString();
 
-  console.log(`✨ Final unique rule count: ${formattedCount}`);
+  console.log(`[info] Final unique rule count: ${formattedCount}`);
 
-  // 1. Generate AdGuard filter.txt (Watermark at top, ONLY rules below)
+  // 1. Generate AdGuard filter.txt (Pure watermark header, then strictly pure rules)
   const adguardWatermark = [
     '!',
     `! Title: ${config.name}`,
-    `! Description: ${config.description} (AdGuard / uBlock Edition)`,
+    `! Description: ${config.description} (AdGuard Edition)`,
     `! Homepage: ${config.homepage}`,
     `! Version: ${config.version}`,
     `! Last modified: ${isoTime}`,
@@ -163,7 +154,7 @@ async function main() {
   }
   filterStream.end();
 
-  // 2. Generate Pi-hole domains.txt (Plain domain per line)
+  // 2. Generate Pi-hole domains.txt (Pure watermark header, then strictly pure domains)
   const domainsWatermark = [
     '#',
     `# Title: ${config.name}`,
@@ -203,7 +194,7 @@ async function main() {
   }
   hostsStream.end();
 
-  // 4. Generate Web Dashboard (index.html)
+  // 4. Generate Web Dashboard (index.html) - Clean, minimalist, no emojis
   const html = `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -218,9 +209,6 @@ async function main() {
       --text-muted: #94a3b8;
       --primary: #38bdf8;
       --primary-hover: #0284c7;
-      --success: #10b981;
-      --pihole-red: #ea2328;
-      --adguard-green: #2ecc71;
       --border: #1e293b;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -244,45 +232,37 @@ async function main() {
     .card {
       background: var(--card-bg);
       border: 1px solid var(--border);
-      border-radius: 1rem;
+      border-radius: 0.75rem;
       padding: 1.75rem;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
     }
     .header h1 {
-      font-size: 2rem;
-      font-weight: 800;
+      font-size: 1.85rem;
+      font-weight: 700;
       color: #fff;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
     }
     .header p {
       color: var(--text-muted);
-      margin-top: 0.5rem;
-      font-size: 1.05rem;
+      margin-top: 0.35rem;
+      font-size: 1rem;
     }
     .badge-group {
       display: flex;
-      gap: 0.6rem;
-      margin-top: 1.25rem;
+      gap: 0.5rem;
+      margin-top: 1rem;
       flex-wrap: wrap;
     }
     .badge {
       display: inline-flex;
       align-items: center;
-      gap: 0.4rem;
-      padding: 0.35rem 0.85rem;
-      border-radius: 9999px;
-      font-size: 0.9rem;
-      font-weight: 700;
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 600;
       background: #090d16;
       border: 1px solid var(--border);
+      color: var(--text);
     }
-    .badge.count { color: var(--success); }
-    .badge.pihole { color: #f87171; }
-    .badge.adguard { color: #4ade80; }
-    .badge.time { color: var(--primary); }
-
+    .badge.count { color: var(--primary); }
     .url-section {
       display: flex;
       flex-direction: column;
@@ -292,21 +272,17 @@ async function main() {
     .url-card {
       background: #090d16;
       border: 1px solid var(--border);
-      border-radius: 0.75rem;
+      border-radius: 0.5rem;
       padding: 1rem 1.25rem;
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
     }
     .url-title {
-      font-size: 0.95rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
     }
-    .url-title.pi { color: #f87171; }
-    .url-title.ag { color: #4ade80; }
     .url-box {
       display: flex;
       align-items: center;
@@ -315,13 +291,13 @@ async function main() {
     .url-text {
       flex: 1;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 0.88rem;
+      font-size: 0.85rem;
       color: var(--primary);
       overflow-x: auto;
       white-space: nowrap;
       background: #0d1322;
       padding: 0.5rem 0.75rem;
-      border-radius: 0.5rem;
+      border-radius: 4px;
       border: 1px solid #1e293b;
     }
     button.copy-btn {
@@ -329,8 +305,8 @@ async function main() {
       color: #090d16;
       border: none;
       padding: 0.5rem 1rem;
-      border-radius: 0.5rem;
-      font-weight: 700;
+      border-radius: 4px;
+      font-weight: 600;
       font-size: 0.85rem;
       cursor: pointer;
       transition: all 0.2s;
@@ -341,26 +317,23 @@ async function main() {
       color: #fff;
     }
     .section-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin-bottom: 1rem;
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
       color: #e2e8f0;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
     }
     ol {
       padding-left: 1.25rem;
       color: var(--text-muted);
     }
-    li { margin-bottom: 0.6rem; }
+    li { margin-bottom: 0.5rem; }
     li strong { color: var(--text); }
     code {
       background: #090d16;
       padding: 0.2rem 0.4rem;
-      border-radius: 0.35rem;
-      font-size: 0.9rem;
-      color: #38bdf8;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      color: var(--primary);
     }
     a {
       color: var(--primary);
@@ -380,67 +353,61 @@ async function main() {
 <body>
   <div class="container">
     <div class="card header">
-      <h1>🛡️ ${config.name}</h1>
+      <h1>${config.name}</h1>
       <p>${config.description}</p>
       
       <div class="badge-group">
-        <span class="badge count">● 차단 도메인: ${formattedCount}개</span>
-        <span class="badge pihole">🍓 Pi-hole 지원</span>
-        <span class="badge adguard">🛡️ AdGuard 지원</span>
-        <span class="badge time">🕒 최근 갱신: ${new Date(isoTime).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}</span>
+        <span class="badge count">Rules: ${formattedCount}</span>
+        <span class="badge">Pi-hole Ready</span>
+        <span class="badge">AdGuard Ready</span>
+        <span class="badge">Updated: ${new Date(isoTime).toISOString()}</span>
       </div>
 
       <div class="url-section">
-        <!-- Pi-hole URL -->
         <div class="url-card">
-          <div class="url-title pi">
-            <span>🍓 파이홀(Pi-hole) 전용 링크 (domains.txt)</span>
-          </div>
+          <div class="url-title">Pi-hole (domains.txt)</div>
           <div class="url-box">
-            <span id="piholeUrl" class="url-text">로딩 중...</span>
-            <button class="copy-btn" onclick="copyUrl('piholeUrl', this)">링크 복사</button>
+            <span id="piholeUrl" class="url-text">Loading...</span>
+            <button class="copy-btn" onclick="copyUrl('piholeUrl', this)">Copy URL</button>
           </div>
         </div>
 
-        <!-- AdGuard URL -->
         <div class="url-card">
-          <div class="url-title ag">
-            <span>🛡️ AdGuard / AdGuard Home / uBlock 전용 링크 (filter.txt)</span>
-          </div>
+          <div class="url-title">AdGuard / AdGuard Home / uBlock (filter.txt)</div>
           <div class="url-box">
-            <span id="adguardUrl" class="url-text">로딩 중...</span>
-            <button class="copy-btn" onclick="copyUrl('adguardUrl', this)">링크 복사</button>
+            <span id="adguardUrl" class="url-text">Loading...</span>
+            <button class="copy-btn" onclick="copyUrl('adguardUrl', this)">Copy URL</button>
           </div>
         </div>
       </div>
     </div>
 
     <div class="card">
-      <h2 class="section-title">🍓 파이홀(Pi-hole)에 등록하는 방법</h2>
+      <h2 class="section-title">Pi-hole Setup</h2>
       <ol>
-        <li>Pi-hole 관리자 페이지 접속 (<code>http://pi.hole/admin</code>)</li>
-        <li>좌측 메뉴에서 <strong>Adlists</strong> 클릭</li>
-        <li><strong>Address</strong> 입력창에 위 <em>[Pi-hole 전용 링크]</em> 붙여넣기</li>
-        <li><strong>Add</strong> 버튼 클릭 후, 콘솔에서 <code>pihole -g</code> 또는 Tools &rarr; <strong>Update Gravity</strong> 실행!</li>
+        <li>Open Pi-hole admin console (<code>http://pi.hole/admin</code>)</li>
+        <li>Navigate to <strong>Adlists</strong></li>
+        <li>Paste the Pi-hole URL into the <strong>Address</strong> field</li>
+        <li>Click <strong>Add</strong>, then run <code>pihole -g</code> (or Tools &gt; Update Gravity)</li>
       </ol>
     </div>
 
     <div class="card">
-      <h2 class="section-title">🛡️ AdGuard Home & 앱 등록 방법</h2>
+      <h2 class="section-title">AdGuard Home & App Setup</h2>
       <ol>
-        <li><strong>AdGuard Home</strong>: 필터 &rarr; DNS 차단 목록 &rarr; <em>차단 목록 추가</em> &rarr; <em>[AdGuard 전용 링크]</em> 등록</li>
-        <li><strong>AdGuard 앱</strong>: 설정 &rarr; DNS 보호 &rarr; DNS 필터 &rarr; <em>필터 추가</em> &rarr; <em>[AdGuard 전용 링크]</em> 등록</li>
-        <li><strong>uBlock Origin</strong>: 설정 &rarr; 필터 목록 &rarr; 하단 <em>가져오기...</em> &rarr; <em>[AdGuard 전용 링크]</em> 등록</li>
+        <li><strong>AdGuard Home</strong>: Filters &gt; DNS blocklists &gt; Add blocklist &gt; Paste filter.txt URL</li>
+        <li><strong>AdGuard App</strong>: Settings &gt; DNS protection &gt; DNS Filters &gt; Add Filter &gt; Paste filter.txt URL</li>
+        <li><strong>uBlock Origin</strong>: Settings &gt; Filter lists &gt; Import &gt; Paste filter.txt URL</li>
       </ol>
     </div>
 
     <footer>
-      <p>Built with ❤️ by <a href="${config.homepage}">someno1se</a></p>
+      <p>Maintained by <a href="${config.homepage}">someno1se</a></p>
       <p style="margin-top: 0.35rem;">
         <a href="domains.txt" target="_blank">domains.txt</a> · 
         <a href="filter.txt" target="_blank">filter.txt</a> · 
         <a href="hosts.txt" target="_blank">hosts.txt</a> · 
-        <a href="${config.homepage}" target="_blank">GitHub 저장소</a>
+        <a href="${config.homepage}" target="_blank">GitHub Repository</a>
       </p>
     </footer>
   </div>
@@ -454,7 +421,7 @@ async function main() {
       const text = document.getElementById(elementId).innerText;
       navigator.clipboard.writeText(text).then(() => {
         const orig = btn.innerText;
-        btn.innerText = '복사 완료! ✅';
+        btn.innerText = 'Copied!';
         setTimeout(() => { btn.innerText = orig; }, 2000);
       });
     }
@@ -466,10 +433,10 @@ async function main() {
   fs.writeFileSync(path.join(distDir, 'index.html'), html, 'utf8');
 
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
-  console.log(`\n🎉 Compilation completed in ${elapsed}s! All output files are ready in dist/`);
+  console.log(`\n[done] Compilation completed in ${elapsed}s. Output files in dist/`);
 }
 
 main().catch(err => {
-  console.error('Fatal error during build:', err);
+  console.error('[fatal] Error during build:', err);
   process.exit(1);
 });
