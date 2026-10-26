@@ -151,13 +151,36 @@ async function main() {
 
   // 2. Verified Whitelist Filtering (Protection against false positives)
   console.log('[whitelist] Applying verified whitelist and protecting critical domains...');
+  
+  // Load priority rules that MUST be blocked unconditionally
+  const priorityRules = new Set();
+  const myRulesFile = path.join(rootDir, 'rules', 'my-rules.txt');
+  if (fs.existsSync(myRulesFile)) {
+    for (const line of fs.readFileSync(myRulesFile, 'utf8').split('\n')) {
+      const d = parseLine(line);
+      if (d) priorityRules.add(d);
+    }
+  }
+
   let removedByWhitelist = 0;
   const toRemove = [];
+
+  const AD_KEYWORDS = /^(?:ad|ads|advert|banner|pixel|telemetry|metric|metrics|analytics|tracker|tracking)\.|\.(?:ad|ads|advert|banner|pixel|telemetry|metric|metrics|analytics|tracker|tracking)\./i;
+
   for (const domain of domainSet) {
+    // Never whitelist anything in my-rules.txt
+    if (priorityRules.has(domain)) continue;
+
+    // Never whitelist ad or telemetry subdomains (e.g. ad.naver.com, iadsdk.apple.com, metrics.apple.com)
+    if (AD_KEYWORDS.test(domain) || domain.startsWith('iad') || domain.includes('adservice') || domain.includes('doubleclick')) {
+      continue;
+    }
+
     if (whitelist.has(domain)) {
       toRemove.push(domain);
       continue;
     }
+
     let dotIdx = domain.indexOf('.');
     while (dotIdx !== -1) {
       const parent = domain.slice(dotIdx + 1);
