@@ -16,6 +16,7 @@ High-performance unified DNS adblock filter list for Pi-hole, AdGuard Home, AdGu
   ```text
   https://someno1se.github.io/someno1se-ad-filter/filter.txt
   ```
+[![Subscribe to Filter](https://img.shields.io/badge/AdGuard%20%2F%20uBlock-구독하기-blue?style=for-the-badge)](abp:subscribe?location=https%3A%2F%2Fsomeno1se.github.io%2Fsomeno1se-ad-filter%2Ffilter.txt&title=someno1se-ad-filter)
 
 ---
 
