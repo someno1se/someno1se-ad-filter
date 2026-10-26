@@ -134,11 +134,11 @@ async function main() {
 
   console.log(`[info] Final unique rule count: ${formattedCount}`);
 
-  // 1. Generate AdGuard filter.txt (Pure watermark header, then strictly pure rules)
-  const adguardWatermark = [
+  // Single unified filter.txt
+  const watermark = [
     '!',
     `! Title: ${config.name}`,
-    `! Description: ${config.description} (AdGuard Edition)`,
+    `! Description: ${config.description}`,
     `! Homepage: ${config.homepage}`,
     `! Version: ${config.version}`,
     `! Last modified: ${isoTime}`,
@@ -148,53 +148,13 @@ async function main() {
 
   const filterFilePath = path.join(distDir, 'filter.txt');
   const filterStream = fs.createWriteStream(filterFilePath, { encoding: 'utf8' });
-  filterStream.write(adguardWatermark);
+  filterStream.write(watermark);
   for (const domain of sortedDomains) {
     filterStream.write(`||${domain}^\n`);
   }
   filterStream.end();
 
-  // 2. Generate Pi-hole domains.txt (Pure watermark header, then strictly pure domains)
-  const domainsWatermark = [
-    '#',
-    `# Title: ${config.name}`,
-    `# Description: ${config.description} (Pi-hole Gravity Edition)`,
-    `# Homepage: ${config.homepage}`,
-    `# Version: ${config.version}`,
-    `# Last modified: ${isoTime}`,
-    `# Total rules: ${formattedCount}`,
-    '#'
-  ].join('\n') + '\n';
-
-  const domainsFilePath = path.join(distDir, 'domains.txt');
-  const domainsStream = fs.createWriteStream(domainsFilePath, { encoding: 'utf8' });
-  domainsStream.write(domainsWatermark);
-  for (const domain of sortedDomains) {
-    domainsStream.write(`${domain}\n`);
-  }
-  domainsStream.end();
-
-  // 3. Generate hosts.txt (0.0.0.0 domain format)
-  const hostsWatermark = [
-    '#',
-    `# Title: ${config.name}`,
-    `# Description: ${config.description} (Standard Hosts Edition)`,
-    `# Homepage: ${config.homepage}`,
-    `# Version: ${config.version}`,
-    `# Last modified: ${isoTime}`,
-    `# Total rules: ${formattedCount}`,
-    '#'
-  ].join('\n') + '\n';
-
-  const hostsFilePath = path.join(distDir, 'hosts.txt');
-  const hostsStream = fs.createWriteStream(hostsFilePath, { encoding: 'utf8' });
-  hostsStream.write(hostsWatermark);
-  for (const domain of sortedDomains) {
-    hostsStream.write(`0.0.0.0 ${domain}\n`);
-  }
-  hostsStream.end();
-
-  // 4. Generate Web Dashboard (index.html) - Clean, minimalist, no emojis
+  // Clean single-file dashboard
   const html = `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -264,9 +224,6 @@ async function main() {
     }
     .badge.count { color: var(--primary); }
     .url-section {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
       margin-top: 1.5rem;
     }
     .url-card {
@@ -365,18 +322,10 @@ async function main() {
 
       <div class="url-section">
         <div class="url-card">
-          <div class="url-title">Pi-hole (domains.txt)</div>
+          <div class="url-title">Filter URL (filter.txt)</div>
           <div class="url-box">
-            <span id="piholeUrl" class="url-text">Loading...</span>
-            <button class="copy-btn" onclick="copyUrl('piholeUrl', this)">Copy URL</button>
-          </div>
-        </div>
-
-        <div class="url-card">
-          <div class="url-title">AdGuard / AdGuard Home / uBlock (filter.txt)</div>
-          <div class="url-box">
-            <span id="adguardUrl" class="url-text">Loading...</span>
-            <button class="copy-btn" onclick="copyUrl('adguardUrl', this)">Copy URL</button>
+            <span id="filterUrl" class="url-text">Loading...</span>
+            <button class="copy-btn" onclick="copyUrl('filterUrl', this)">Copy URL</button>
           </div>
         </div>
       </div>
@@ -387,35 +336,32 @@ async function main() {
       <ol>
         <li>Open Pi-hole admin console (<code>http://pi.hole/admin</code>)</li>
         <li>Navigate to <strong>Adlists</strong></li>
-        <li>Paste the Pi-hole URL into the <strong>Address</strong> field</li>
+        <li>Paste the Filter URL into the <strong>Address</strong> field</li>
         <li>Click <strong>Add</strong>, then run <code>pihole -g</code> (or Tools &gt; Update Gravity)</li>
       </ol>
     </div>
 
     <div class="card">
-      <h2 class="section-title">AdGuard Home & App Setup</h2>
+      <h2 class="section-title">AdGuard Setup</h2>
       <ol>
-        <li><strong>AdGuard Home</strong>: Filters &gt; DNS blocklists &gt; Add blocklist &gt; Paste filter.txt URL</li>
-        <li><strong>AdGuard App</strong>: Settings &gt; DNS protection &gt; DNS Filters &gt; Add Filter &gt; Paste filter.txt URL</li>
-        <li><strong>uBlock Origin</strong>: Settings &gt; Filter lists &gt; Import &gt; Paste filter.txt URL</li>
+        <li><strong>AdGuard Home</strong>: Filters &gt; DNS blocklists &gt; Add blocklist &gt; Paste Filter URL</li>
+        <li><strong>AdGuard App</strong>: Settings &gt; DNS protection &gt; DNS Filters &gt; Add Filter &gt; Paste Filter URL</li>
+        <li><strong>uBlock Origin</strong>: Settings &gt; Filter lists &gt; Import &gt; Paste Filter URL</li>
       </ol>
     </div>
 
     <footer>
       <p>Maintained by <a href="${config.homepage}">someno1se</a></p>
       <p style="margin-top: 0.35rem;">
-        <a href="domains.txt" target="_blank">domains.txt</a> · 
         <a href="filter.txt" target="_blank">filter.txt</a> · 
-        <a href="hosts.txt" target="_blank">hosts.txt</a> · 
         <a href="${config.homepage}" target="_blank">GitHub Repository</a>
       </p>
     </footer>
   </div>
 
   <script>
-    const baseUrl = window.location.origin + window.location.pathname.replace(/index\.html$/, '');
-    document.getElementById('piholeUrl').innerText = baseUrl + 'domains.txt';
-    document.getElementById('adguardUrl').innerText = baseUrl + 'filter.txt';
+    const filterTxtUrl = window.location.origin + window.location.pathname.replace(/index\\.html$/, '') + 'filter.txt';
+    document.getElementById('filterUrl').innerText = filterTxtUrl;
 
     function copyUrl(elementId, btn) {
       const text = document.getElementById(elementId).innerText;
@@ -432,8 +378,14 @@ async function main() {
 
   fs.writeFileSync(path.join(distDir, 'index.html'), html, 'utf8');
 
+  // Clean old files if any
+  const oldDomains = path.join(distDir, 'domains.txt');
+  const oldHosts = path.join(distDir, 'hosts.txt');
+  if (fs.existsSync(oldDomains)) fs.unlinkSync(oldDomains);
+  if (fs.existsSync(oldHosts)) fs.unlinkSync(oldHosts);
+
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
-  console.log(`\n[done] Compilation completed in ${elapsed}s. Output files in dist/`);
+  console.log(`\n[done] Compilation completed in ${elapsed}s. Output: dist/filter.txt`);
 }
 
 main().catch(err => {

@@ -9,16 +9,13 @@ High-performance unified DNS adblock filter list for Pi-hole, AdGuard Home, AdGu
 
 ---
 
-## Subscription URLs
+## Subscription URL
 
-### 1. Pi-hole (Gravity)
-* Format: Plain domain per line
-* URL: `https://someno1se.github.io/someno1se-ad-filter/domains.txt`
-* Standard hosts (0.0.0.0) format: `https://someno1se.github.io/someno1se-ad-filter/hosts.txt`
-
-### 2. AdGuard / AdGuard Home / uBlock Origin
-* Format: Adblock syntax (`||domain^`)
-* URL: `https://someno1se.github.io/someno1se-ad-filter/filter.txt`
+* **Format**: Adblock DNS syntax (`||domain^`)
+* **URL**:
+  ```text
+  https://someno1se.github.io/someno1se-ad-filter/filter.txt
+  ```
 
 ---
 
@@ -28,7 +25,7 @@ High-performance unified DNS adblock filter list for Pi-hole, AdGuard Home, AdGu
 2. Go to **Adlists**
 3. Paste the URL into the **Address** field:
    ```text
-   https://someno1se.github.io/someno1se-ad-filter/domains.txt
+   https://someno1se.github.io/someno1se-ad-filter/filter.txt
    ```
 4. Click **Add**, then update gravity:
    ```bash
@@ -45,19 +42,6 @@ High-performance unified DNS adblock filter list for Pi-hole, AdGuard Home, AdGu
    * Settings -> DNS protection -> DNS Filters -> Add filter -> Paste `filter.txt` URL
 3. **uBlock Origin**:
    * Dashboard -> Filter lists -> Import -> Paste `filter.txt` URL
-
----
-
-## Sources
-
-This filter compiles and deduplicates rules from:
-1. `rules/my-rules.txt` (Local priority rules)
-2. `KOR: filterslist-KO DNS (filter_25)`
-3. `HaGeZi Multi Ultimate`
-4. `OISD Big`
-5. `1Hosts (Xtra)`
-6. `StevenBlack Unified Extended`
-7. `AdGuard DNS Base Filter`
 
 ---
 
