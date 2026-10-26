@@ -1,8 +1,8 @@
 {
   "name": "someno1se ad filter",
-  "description": "High-Performance Unified DNS AdBlock Filter (AdGuard & Pi-hole)",
+  "description": "High-Performance Unified DNS AdBlock Filter",
   "homepage": "https://github.com/someno1se/someno1se-ad-filter",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "sources": [
     {
       "name": "someno1se Priority Rules",
@@ -39,5 +39,9 @@
       "source": "https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt",
       "type": "adblock"
     }
+  ],
+  "whitelists": [
+    "rules/whitelist.txt",
+    "https://raw.githubusercontent.com/anudeepND/whitelist/master/domains/whitelist.txt"
   ]
 }

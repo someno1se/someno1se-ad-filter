@@ -1,15 +1,69 @@
+# Korean Essential Portals & Auth
+naver.com
 nid.naver.com
+auth.naver.com
+static.nid.naver.com
+search.naver.com
+map.naver.com
+pay.naver.com
+kakao.com
 kauth.kakao.com
 accounts.kakao.com
-t1.daumcdn.net
-pay.naver.com
 kakaopay.com
+daum.net
+t1.daumcdn.net
+nate.com
+zum.com
+
+# FinTech & Korean Banking
 toss.im
-banking.nonghyup.com
-ibk.co.kr
+toss.me
+tosspay.com
+payco.com
 kbstar.com
 shinhan.com
 wooribank.com
 hanafn.com
+ibk.co.kr
+banking.nonghyup.com
+nonghyup.com
+kakaobank.com
+kbanknow.com
+epostbank.go.kr
+
+# Identity & Korean Mobile PASS
+pass.skt.com
+pass.kt.com
+pass.lguplus.com
+nicepay.co.kr
+kcp.co.kr
+inicis.com
+danal.co.kr
+
+# Public Services & Government
 gov.kr
 hometax.go.kr
+minwon.go.kr
+epost.go.kr
+korea.kr
+vaks.kr
+g4c.go.kr
+
+# Couriers & E-commerce Essential
+coupang.com
+cjlogistics.com
+epost.kr
+gmarket.co.kr
+auction.co.kr
+11st.co.kr
+ssg.com
+
+# Critical Device OS Push & Sync
+push.apple.com
+appleid.apple.com
+icloud.com
+play.google.com
+accounts.google.com
+login.microsoftonline.com
+windowsupdate.com
+github.com

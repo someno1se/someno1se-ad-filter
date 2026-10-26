@@ -6,7 +6,6 @@ const { Readable } = require('stream');
 const rootDir = path.resolve(__dirname, '..');
 const distDir = path.join(rootDir, 'dist');
 const configFile = path.join(rootDir, 'configuration.json');
-const whitelistFile = path.join(rootDir, 'rules', 'whitelist.txt');
 
 const IP_REGEX = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/;
 
@@ -43,19 +42,6 @@ function parseLine(line) {
   return null;
 }
 
-async function loadWhitelist() {
-  const whitelist = new Set();
-  if (!fs.existsSync(whitelistFile)) return whitelist;
-
-  const content = fs.readFileSync(whitelistFile, 'utf8');
-  for (const line of content.split('\n')) {
-    const domain = parseLine(line);
-    if (domain) whitelist.add(domain);
-  }
-  console.log(`[whitelist] Loaded ${whitelist.size.toLocaleString()} whitelisted domains.`);
-  return whitelist;
-}
-
 async function fetchSourceStream(sourceUrl) {
   if (sourceUrl.startsWith('http://') || sourceUrl.startsWith('https://')) {
     console.log(`[fetch] ${sourceUrl}`);
@@ -73,6 +59,25 @@ async function fetchSourceStream(sourceUrl) {
     }
     return fs.createReadStream(filePath);
   }
+}
+
+async function loadWhitelists(whitelistSources) {
+  const whitelist = new Set();
+  for (const src of (whitelistSources || [])) {
+    try {
+      const stream = await fetchSourceStream(src);
+      if (!stream) continue;
+      const rl = readline.createInterface({ input: stream, crlfDelay: Infinity });
+      for await (const line of rl) {
+        const domain = parseLine(line);
+        if (domain) whitelist.add(domain);
+      }
+    } catch (err) {
+      console.error(`[warn] Failed to load whitelist ${src}: ${err.message}`);
+    }
+  }
+  console.log(`[whitelist] Loaded ${whitelist.size.toLocaleString()} unique verified safe domains.`);
+  return whitelist;
 }
 
 async function processSource(source, domainSet) {
@@ -96,14 +101,38 @@ async function processSource(source, domainSet) {
   return count;
 }
 
+// Subdomain Compression: If parent domain (e.g. example.com) is blocked,
+// remove all redundant children (e.g. sub.ad.example.com) to save RAM and file size.
+function compressSubdomains(domainSet) {
+  console.log('[compress] Analyzing subdomains for intelligent compression...');
+  const redundant = [];
+  for (const domain of domainSet) {
+    let dotIdx = domain.indexOf('.');
+    while (dotIdx !== -1) {
+      const parent = domain.slice(dotIdx + 1);
+      if (domainSet.has(parent)) {
+        redundant.push(domain);
+        break;
+      }
+      dotIdx = domain.indexOf('.', dotIdx + 1);
+    }
+  }
+
+  for (const red of redundant) {
+    domainSet.delete(red);
+  }
+  console.log(`[compress] Compressed and removed ${redundant.length.toLocaleString()} redundant subdomains.`);
+  return redundant.length;
+}
+
 async function main() {
   const startTime = Date.now();
-  console.log('[build] Starting compilation pipeline...\n');
+  console.log('[build] Starting someno1se ad filter v1.1.0 pipeline...\n');
 
   fs.mkdirSync(distDir, { recursive: true });
 
   const config = JSON.parse(fs.readFileSync(configFile, 'utf8'));
-  const whitelist = await loadWhitelist();
+  const whitelist = await loadWhitelists(config.whitelists);
   const domainSet = new Set();
 
   for (const source of config.sources) {
@@ -114,17 +143,37 @@ async function main() {
     }
   }
 
-  console.log(`\n[info] Total unique domains collected: ${domainSet.size.toLocaleString()}`);
+  const rawTotal = domainSet.size;
+  console.log(`\n[info] Raw unique domains before compression: ${rawTotal.toLocaleString()}`);
 
+  // 1. Intelligent Subdomain Compression
+  compressSubdomains(domainSet);
+
+  // 2. Verified Whitelist Filtering (Protection against false positives)
+  console.log('[whitelist] Applying verified whitelist and protecting critical domains...');
   let removedByWhitelist = 0;
-  for (const allowed of whitelist) {
-    if (domainSet.delete(allowed)) {
-      removedByWhitelist++;
+  const toRemove = [];
+  for (const domain of domainSet) {
+    if (whitelist.has(domain)) {
+      toRemove.push(domain);
+      continue;
+    }
+    let dotIdx = domain.indexOf('.');
+    while (dotIdx !== -1) {
+      const parent = domain.slice(dotIdx + 1);
+      if (whitelist.has(parent)) {
+        toRemove.push(domain);
+        break;
+      }
+      dotIdx = domain.indexOf('.', dotIdx + 1);
     }
   }
-  if (removedByWhitelist > 0) {
-    console.log(`[info] Removed ${removedByWhitelist.toLocaleString()} domains via whitelist.`);
+
+  for (const r of toRemove) {
+    domainSet.delete(r);
+    removedByWhitelist++;
   }
+  console.log(`[whitelist] Protected ${removedByWhitelist.toLocaleString()} legitimate service domains from false positives.`);
 
   console.log('[info] Sorting domains alphabetically...');
   const sortedDomains = Array.from(domainSet).sort();
@@ -132,9 +181,9 @@ async function main() {
   const isoTime = new Date().toISOString();
   const formattedCount = totalRules.toLocaleString();
 
-  console.log(`[info] Final unique rule count: ${formattedCount}`);
+  console.log(`[info] Final optimized rule count: ${formattedCount}`);
 
-  // Single unified filter.txt
+  // Generate unified filter.txt
   const watermark = [
     '!',
     `! Title: ${config.name}`,
@@ -142,7 +191,7 @@ async function main() {
     `! Homepage: ${config.homepage}`,
     `! Version: ${config.version}`,
     `! Last modified: ${isoTime}`,
-    `! Total rules: ${formattedCount}`,
+    `! Total rules: ${formattedCount} (Compressed from ${rawTotal.toLocaleString()})`,
     '!'
   ].join('\n') + '\n';
 
@@ -154,7 +203,7 @@ async function main() {
   }
   filterStream.end();
 
-  // Clean single-file dashboard
+  // Generate Web Dashboard
   const html = `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -315,8 +364,8 @@ async function main() {
       
       <div class="badge-group">
         <span class="badge count">Rules: ${formattedCount}</span>
-        <span class="badge">Pi-hole Ready</span>
-        <span class="badge">AdGuard Ready</span>
+        <span class="badge">Compressed & Optimized</span>
+        <span class="badge">False-Positive Protected</span>
         <span class="badge">Updated: ${new Date(isoTime).toISOString()}</span>
       </div>
 
@@ -377,12 +426,6 @@ async function main() {
 `;
 
   fs.writeFileSync(path.join(distDir, 'index.html'), html, 'utf8');
-
-  // Clean old files if any
-  const oldDomains = path.join(distDir, 'domains.txt');
-  const oldHosts = path.join(distDir, 'hosts.txt');
-  if (fs.existsSync(oldDomains)) fs.unlinkSync(oldDomains);
-  if (fs.existsSync(oldHosts)) fs.unlinkSync(oldHosts);
 
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
   console.log(`\n[done] Compilation completed in ${elapsed}s. Output: dist/filter.txt`);
