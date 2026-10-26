@@ -3,8 +3,8 @@
 ! Description: High-Performance Unified DNS AdBlock Filter
 ! Homepage: https://github.com/someno1se/someno1se-ad-filter
 ! Version: 1.1.0
-! Last modified: 2026-10-26T12:56:36.838Z
-! Total rules: 1,192,212 (Compressed from 1,312,696)
+! Last modified: 2026-10-26T13:00:37.261Z
+! Total rules: 1,192,196 (Compressed from 1,312,696)
 !
 ||0--4.com^
 ||0--d.com^
@@ -36262,7 +36262,6 @@
 ||929tcw.com^
 ||929zpw.com^
 ||92a98a2163.com^
-||92ab.playfabapi.com^
 ||92ajdipn.com^
 ||92b94jt6icqlrxmoipg.cfd^
 ||92ba.com^
@@ -38472,7 +38471,6 @@
 ||a-classic-models.com^
 ||a-cn.duoyi.com^
 ||a-collab.land^
-||a-collector.errors.ea.com^
 ||a-comics.ru^
 ||a-contresens.net^
 ||a-cosmetics.net^
@@ -51255,7 +51253,6 @@
 ||ad555.com^
 ||ad56.nettravel.com^
 ||ad56.paycount.com^
-||ad564.playfabapi.com^
 ||ad57.paycount.com^
 ||ad58.paycount.com^
 ||ad59.paycount.com^
@@ -60029,7 +60026,6 @@
 ||adsrv.deviantart.com^
 ||adsrv.dispatch.com^
 ||adsrv.dt.co.kr^
-||adsrv.ea.com^
 ||adsrv.heraldtribune.com^
 ||adsrv.hh.ru^
 ||adsrv.iol.co.za^
@@ -131666,7 +131662,6 @@
 ||b31750823-fb2f-4568-80fc-72dc015438a0.netlify.app^
 ||b3326b1b.pinme.dev^
 ||b3400dda56f2.com^
-||b343.playfabapi.com^
 ||b343s4r5ptarj9d9x5csa.cc^
 ||b347.pottsmerc.com^
 ||b34fdbe934.com^
@@ -189147,7 +189142,6 @@
 ||bytesync.click^
 ||bytetcc.com^
 ||byteurl.cn^
-||bytevault.gameservices.ea.com^
 ||bytevcloud.com^
 ||bytevcloudapi.com^
 ||bytevdn.com^
@@ -236810,7 +236804,6 @@
 ||collector.efimovlaw.ru^
 ||collector.egricayir.com^
 ||collector.einstein.dna.fi^
-||collector.errors.ea.com^
 ||collector.etiketlageret.dk^
 ||collector.ex.co^
 ||collector.faphouse2.com^
@@ -355387,9 +355380,7 @@
 ||experimentalraketen.de^
 ||experimentalscene.com^
 ||experimentassignment.api.intuit.com^
-||experimentation-apex.data.ea.com^
 ||experimentation.chase.com^
-||experimentation.data.ea.com^
 ||experimentation.dev^
 ||experimentation.halfpipe.nike.com^
 ||experimentation.intuit.com^
@@ -392112,7 +392103,6 @@
 ||freeforall.it^
 ||freeforfonts.com^
 ||freeform-events.apple.com^
-||freeform-river.data.ea.com^
 ||freeforms.com^
 ||freeformsnow.com^
 ||freeformsnyc.com^
@@ -429421,7 +429411,6 @@
 ||gosbroker.pro^
 ||gosbyfencjhqa.online^
 ||gosc.pl^
-||gosca18.ea.com^
 ||goscalepro.com^
 ||goschenelect.com^
 ||goschulen.at^
@@ -459414,7 +459403,6 @@
 ||heartbeat.belkin.com^
 ||heartbeat.chat^
 ||heartbeat.crackle.com^
-||heartbeat.dm.origin.com^
 ||heartbeat.flickr.com^
 ||heartbeat.ngo^
 ||heartbeat.pmc.com^
@@ -623634,8 +623622,6 @@
 ||mangjiang.cn^
 ||mangkosme.com^
 ||manglefocuses.qpon^
-||mangler3.generals.ea.com^
-||mangler4.generals.ea.com^
 ||manglikmatrimony.com^
 ||mangliks.com^
 ||manglish.app^
@@ -770710,7 +770696,6 @@
 ||pin-avto.ru^
 ||pin-code.net^
 ||pin-prick.com^
-||pin-river.data.ea.com^
 ||pin-up-angels.net^
 ||pin-up-casino-pnp7.top^
 ||pin-up-casinokazz.live^
@@ -1008248,7 +1008233,6 @@
 ||telem-edge.smartscreen.microsoft.com^
 ||telem.sre.gopuff.com^
 ||telem.sx^
-||telem13.data.ea.com^
 ||telemach.si^
 ||telemachsi.weebly.com^
 ||telemail.fi^
