@@ -107,3 +107,17 @@ windowsupdate.com
 update.microsoft.com
 github.com
 githubusercontent.com
+helldivers2.com
+helldivers.com
+arrowheadgamestudios.com
+playfabapi.com
+oneocsp.microsoft.com
+ocsp.digicert.com
+crl.microsoft.com
+gameguard.co.kr
+nprotect.com
+inca.co.kr
+easyanticheat.net
+battleye.com
+ea.com
+origin.com
