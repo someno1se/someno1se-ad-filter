@@ -11,7 +11,7 @@ on:
       - 'scripts/**'
       - 'package.json'
   schedule:
-    # 매일 한국 시간 새벽 3시(UTC 18:00)에 최신 차단 목록 자동 업데이트
+    #  일하라 봇
     - cron: '0 18 * * *'
   workflow_dispatch:
 
