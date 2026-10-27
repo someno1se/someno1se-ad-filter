@@ -121,3 +121,12 @@ easyanticheat.net
 battleye.com
 ea.com
 origin.com
+smartstore.naver.com
+shopping.naver.com
+search.shopping.naver.com
+cr.naver.com
+cr.shopping.naver.com
+adcr.naver.com
+adcr.shopping.naver.com
+recoshopping.naver.com
+shopsquare.naver.com
